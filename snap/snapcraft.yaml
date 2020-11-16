@@ -95,13 +95,13 @@ grade: stable
 # https://docs.snapcraft.io/scriptlets/4892
 parts:
   # Files to patch the files in the snap
-  patching:
-    source: snap/local/patching
-    plugin: dump
-    organize:
-      '*': patching/
-    prime:
-    - -*
+  # patching:
+  #   source: snap/local/patching
+  #   plugin: dump
+  #   organize:
+  #     '*': patching/
+  #   prime:
+  #   - -*
 
   # Launcher programs to fix problems at runtime
   launchers:
@@ -113,13 +113,13 @@ parts:
     - -bin/README.*
 
   # Programs to modify the behavior of each step of the snapcraft lifecycles
-  scriptlets:
-    source: snap/local/scriptlets
-    plugin: dump
-    organize:
-      '*': scriptlets/
-    prime:
-    - -*
+  # scriptlets:
+  #   source: snap/local/scriptlets
+  #   plugin: dump
+  #   organize:
+  #     '*': scriptlets/
+  #   prime:
+  #   - -*
 
   # Stage snap for fixing the glibc locales(and gnu gettext I18N support)
   # This part is only required for non GUI apps that don't uses the desktop-launch launchers
@@ -142,83 +142,80 @@ parts:
     #
     #- locales-all
 
-  # Remote part for support of various desktop technologies
-  # Refer: https://github.com/ubuntu/snapcraft-desktop-helpers/blob/master/snapcraft.yaml
-  desktop-gnome-platform:
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-depth: 1
-    source-subdir: gtk
-
-    plugin: make
+  # Check out the tagged release revision if it isn't promoted to the stable channel
+  # https://forum.snapcraft.io/t/selective-checkout-check-out-the-tagged-release-revision-if-it-isnt-promoted-to-the-stable-channel/10617
+  selective-checkout:
+    source: https://github.com/Lin-Buo-Ren/selective-checkout.git
+    source-tag: v2.0.2
+    plugin: dump
     build-packages:
-    - gcc
-    override-build: |
-      snapcraftctl build
-      mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
-
-  # Integrate custom dialogs in your snap - doc - snapcraft.io
-  # https://forum.snapcraft.io/t/integrate-custom-dialogs-in-your-snap/10825
-  zenity-integration:
-    plugin: nil
-    stage-snaps:
-    - zenity-integration
+      - curl
+      - jq
+      - sed
+      - git
+    stage:
+      - scriptlets/selective-checkout
+    prime:
+      - -*
 
   main:
     after:
     # for patch-desktop-entries.*
-    - patching
+    # - patching
 
     # for override-pull script
-    - scriptlets
+    # - scriptlets
 
-    source: .
-    #source-type:
-    #source-branch:
-    #source-tag:
-    #source-depth:
+      - selective-checkout
+    source: https://github.com/fsfe/reuse-tool.git
+    source-depth: 200
     override-pull: |
       set -o nounset
 
       snapcraftctl pull
 
-      "${SNAPCRAFT_STAGE}"/scriptlets/main-adopt-info
+      "${SNAPCRAFT_STAGE}"/scriptlets/selective-checkout \
+        --append-packaging-revision
 
-    plugin: dump
-    organize:
-      my-awesome-app: bin/
-    stage:
-    - bin/*
-
-    override-prime: |
-      set \
-        -o nounset
-
-      snapcraftctl prime
-
-      "${SNAPCRAFT_STAGE}"/patching/patch-desktop-entries.bash
+    plugin: python
+    build-packages:
+      - gettext
+    # DISABLED: Version incompatible...
+    # requirements:
+    #   - requirements.txt
+    python-packages:
+      - binaryornot
+      - boolean.py
+      - Jinja2
+      - license-expression
+      - python-debian
+      - requests
+      - setuptools-scm
+    stage-packages:
+      - git
+      - mercurial
 
 # Apps that are exposed by the snap package
 # If the _app_name_ is identical with the _snap_name_ it can be directly run
 # with `_snap_name_` or `snap run _snap_name_` commands, otherwise it can only be run
 # via `_snap_name_._app_name_` or `snap run _snap_name_._app_name_`
 apps:
-  my-awesome-app:
+  reuse:
     # The adapter to set up runtime environment at the launch of the snap
     # NOTE: The `command-chain` property is only supported by the `full` adapter
     adapter: full
 
     # An *relative path* to an executable file root from the `prime` directory to be executed, and its command-line arguments
     # NOTE: The right angle bracket at the beginning of the value of the `command` keyword starts a YAML folded style block scalar, refer the following spec document for more info: http://yaml.org/spec/1.2/spec.html#id2796251
-    command: bin/my-awesome-app
+    command: bin/reuse
 
     # The commands that are run, in order, before running the one specified by the `command` key
     command-chain:
-    - bin/desktop-launch
-    - bin/my-awesome-app-launch
+      - bin/reuse-launch
 
-    # If the providing part of the app. has a desktop entry, specify its path relative to the `prime` directory.
-    # If the packaging target doesn't provide a desktop entry, ignore the `desktop` key and implement a desktop entry in `/snap/gui`
-    #desktop: share/applications/my-awesome-app.desktop
+    environment:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
 
 # Refer the following documentation for asserting interface plugs and slots in a security confined snap:
 # Interface management - doc - snapcraft.io
@@ -227,39 +224,9 @@ apps:
 # https://docs.snapcraft.io/supported-interfaces/7744
 # Non-A/C: Non-autoconnect interface
 plugs:
-  # Common desktop interfaces
-  # https://forum.snapcraft.io/t/the-desktop-interfaces/2042
-  desktop:
-  desktop-legacy:
-  unity7:
-  wayland:
-
-  # GNOME and Gtk runtime via content sharing
-  # https://forum.snapcraft.io/t/desktop-app-support-gtk/6834
-  gnome-3-28-1804:
-    interface: content
-    target: $SNAP/gnome-platform
-    default-provider: gnome-3-28-1804
-
-  # Gtk Common Themes support
-  # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
-  gsettings:
-  gtk-3-themes:
-    interface: content
-    target: $SNAP/data-dir/themes
-    default-provider: gtk-common-themes
-  icon-themes:
-    interface: content
-    target: $SNAP/data-dir/icons
-    default-provider: gtk-common-themes
-  sound-themes:
-    interface: content
-    target: $SNAP/data-dir/sounds
-    default-provider: gtk-common-themes
-
   # Regular files access
-  #home:
-  #removable-media: # Non-A/C
+  home:
+  removable-media: # Non-A/C
 
   # Application-specific files access
   # The auto-connection requires store grant
@@ -268,11 +235,11 @@ plugs:
   #user-wide-configs:
     #interface: personal-files
     #read:
-    #- $HOME/.config/my-awesome-app
+    #- $HOME/.config/reuse
   #system-wide-configs:
     #interface: system-files
     #read:
-    #- /etc/my-awesome-app
+    #- /etc/reuse
 
   # Network access
   #network:
