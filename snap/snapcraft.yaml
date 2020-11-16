@@ -158,14 +158,23 @@ parts:
     prime:
       - -*
 
+  snapcraft-preload:
+    source: https://github.com/sergiusens/snapcraft-preload.git
+    plugin: cmake
+    build-packages:
+      - on amd64:
+        - gcc-multilib
+        - g++-multilib
+
+  git-launch:
+    source: https://github.com/Lin-Buo-Ren/git-launch.git
+    source-tag: v1.0.0
+    plugin: dump
+    stage:
+      - bin/*
+
   main:
     after:
-    # for patch-desktop-entries.*
-    # - patching
-
-    # for override-pull script
-    # - scriptlets
-
       - selective-checkout
     source: https://github.com/fsfe/reuse-tool.git
     source-depth: 200
@@ -193,6 +202,7 @@ parts:
       - setuptools-scm
     stage-packages:
       - git
+      - lib32stdc++6
       - mercurial
 
 # Apps that are exposed by the snap package
@@ -212,6 +222,8 @@ apps:
     # The commands that are run, in order, before running the one specified by the `command` key
     command-chain:
       - bin/reuse-launch
+      - bin/git-launch
+      - bin/snapcraft-preload
 
     environment:
       LANG: C.UTF-8
