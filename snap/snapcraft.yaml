@@ -1,6 +1,6 @@
 %YAML 1.1
 ---
-# Snapcraft Recipe for [Project]
+# Snapcraft Recipe for reuse
 # ------------------------------
 # This file is in the YAML data serialization format:
 # http://yaml.org
@@ -17,30 +17,42 @@
 # All following comments, including this one, are designed to be stripped
 # before contributing the recipe to the upstream
 
-# [Project], my-awesome-app, my-awesome-app-launch
+# reuse, reuse, reuse-launch
 # are placeholders text meant to be replaced by appropriate content
-name: my-awesome-app
-title: My Awesome App.
-summary: Single-line elevator pitch for your amazing snap under 79 chars.
+name: reuse
+title: reuse (UNOFFICIAL)
+summary: A tool for compliance with the REUSE recommendations
 description: |
-  This is my-awesome-app's description. You have a paragraph or two to tell
-  the most important story about your snap. Keep it under 100 words though,
-  we live in tweetspace and your description wants to look good in the snap
-  store.
+  Copyright and licensing is difficult, especially when reusing software from different projects that are released under various different licenses. [REUSE](https://reuse.software/) was started by the [Free Software Foundation Europe](https://fsfe.org/) (FSFE) to provide a set of recommendations to make licensing your Free Software projects easier. Not only do these recommendations make it easier for you to declare the licenses under which your works are released, but they also make it easier for a computer to understand how your project is licensed.
 
-  This is the demonstration app of the Snapcrafters Template Plus:
-  https://github.com/Lin-Buo-Ren/snapcrafters-template-plus
+  As a short summary, the recommendations are threefold:
+
+  1. Choose and provide licenses
+  2. Add copyright and licensing information to each file
+  3. Confirm REUSE compliance
+
+  You are recommended to read [our tutorial](https://reuse.software/tutorial) for a step-by-step guide through these three steps. The [FAQ](https://reuse.software/faq) covers basic questions about licensing, copyright, and more complex use cases. Advanced users and integrators will find the [full specification](https://reuse.software/spec) helpful.
+
+  This tool exists to facilitate the developer in complying with the above recommendations.
+
+  There are [other tools](https://reuse.software/comparison) that have a lot more features and functionality surrounding the analysis and inspection of copyright and licenses in software projects. The REUSE helper tool, on the other hand, is solely designed to be a simple tool to assist in compliance with the REUSE recommendations.
+
+  **Snap-specific details**
+
+  This is NOT an official distribution of reuse, refer the snap's own issue tracker for more info:
+
+  https://github.com/Lin-Buo-Ren/reuse-snap/issues
 
 # The path of icon to represent the snap, relative to the source tree directory
 # Only PNG or SVG image is supported, dimension must be greater than 256x256px
-icon: snap/gui/my-awesome-app.png
+icon: snap/gui/reuse.png
 
 # The license of this application, in SPDX format
 # NOTE: Currently only supports SPDX 2.1 license expressions, as described in Appendix IV of
 # https://spdx.org/spdx-specification-21-web-version
 # Supported expressions:
 # https://github.com/snapcore/snapd/blob/HEAD/spdx/licenses.go
-#license:
+license: GPL-3.0+
 
 # Version string just for humans, typically '1.2+git' or '1.3.2'
 # The wrapping single quotes are often required to avoid the version string
@@ -57,7 +69,7 @@ adopt-info: main
 # Snapd feature set and version the snap requires in order to work
 # https://forum.snapcraft.io/t/snapcraft-top-level-metadata/8334#heading--assumes
 assumes:
-- command-chain
+  - command-chain
 
 # Base runtime
 # The common runtime for the snap to run on, or `bare` for static linked applications
